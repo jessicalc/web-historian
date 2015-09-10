@@ -49,8 +49,8 @@ exports.actions = {
         res.end(data);
       })
     } else {
-      archive.isUrlInList(path, function(ourBool) {
-        if (ourBool) {
+      archive.isUrlInList(path, function(isInList) {
+        if (isInList) {
           exports.serveAssets(res, archive.paths.archivedSites + path, function(data) {
             res.writeHead(200, exports.headers);
             res.end(data);

@@ -31,14 +31,16 @@ exports.readListOfUrls = function(callback) {
     if (err) {
       throw err;
     };
-    callback(data.split('\n'));
+    var listOfUrls = data.split('\n');
+    callback(listOfUrls);
   });
 };
 
 exports.isUrlInList = function(archivedSiteUrl, callback) {
   //Call readListOfUrls. Passit a callback function
-  exports.readListOfUrls(function(data){
-    callback(data.indexOf(archivedSiteUrl) > -1);
+  exports.readListOfUrls(function(listOfUrls){
+    var isInListOfUrls = listOfUrls.indexOf(archivedSiteUrl) > -1;
+    callback(isInListOfUrls);
   })
   // callback = callback || exports.readListOfUrls;
   // callback(function(data) {
