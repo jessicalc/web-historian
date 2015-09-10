@@ -50,8 +50,8 @@ exports.isUrlInList = function(archivedSiteUrl, callback) {
 
 exports.addUrlToList = function(archivedSiteUrl, callback) {
   // callback();
-  exports.isUrlInList(archivedSiteUrl, function(ourBool) {
-    if (!ourBool) {
+  exports.isUrlInList(archivedSiteUrl, function(isInList) {
+    if (!isInList) {
       // console.log(exports.paths.list, archivedSiteUrl);
       fs.writeFile(exports.paths.list, archivedSiteUrl, 'utf8', function(err) {
         if (err) {
