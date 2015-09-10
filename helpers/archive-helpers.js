@@ -1,7 +1,9 @@
 var fs = require('fs');
 var path = require('path');
+var http = require('http');
 var httpreq = require('http-request');
 var _ = require('underscore');
+var request = require("request");
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -32,14 +34,14 @@ exports.readListOfUrls = function(callback) {
       throw err;
     };
     var listOfUrls = data.split('\n');
-    callback(listOfUrls);
+    callback(listOfUrls); 
   });
 };
 
 exports.isUrlInList = function(archivedSiteUrl, callback) {
   //Call readListOfUrls. Passit a callback function
   exports.readListOfUrls(function(listOfUrls){
-    var isInListOfUrls = listOfUrls.indexOf(archivedSiteUrl.slice(0,-1)) > -1;
+    var isInListOfUrls = listOfUrls.indexOf(archivedSiteUrl) > -1;
     callback(isInListOfUrls);
   })
 };
@@ -50,15 +52,20 @@ exports.addUrlToList = function(archivedSiteUrl, callback) {
     console.log(isInList);
     if (!isInList) {
       // console.log(exports.paths.list, archivedSiteUrl);
-      fs.appendFile(exports.paths.list, archivedSiteUrl, 'utf8', function(err) {
+      fs.appendFile(exports.paths.list, archivedSiteUrl + '\n', 'utf8', function(err) {
         if (err) {
           throw err;
         }
-        callback();
+        callback(function(data) {
+          console.log("I should be downloading stuff at", data);
+          exports.downloadUrls(data, function() {
+            console.log("I downloaded stuff.");
+          });
+        })
       });
-      exports.readListOfUrls(function(data) {
-        console.log('Our list of URLs is', data);
-      })
+      // exports.readListOfUrls(function(data) {
+      //   console.log('Our list of URLs is', data);
+      // })
     }
   });
 };
@@ -80,21 +87,42 @@ exports.isUrlArchived = function(archivedSiteUrl, callback) {
   });
 };
 
-exports.downloadUrls = function(urlArray) {
+exports.downloadUrls = function(urlArray, callback) {
   //check if url is archived
   _.each(urlArray, function(url) {
     exports.isUrlArchived(url, function(isUrlInArchive) {
-      console.log("The url array is ", urlArray);
-      console.log("The current url is    ", url);
-      console.log("Is the current url archived?  ", isUrlInArchive);
       if (!isUrlInArchive) {
-        //If not, download it using httpreq.get
-        httpreq.get(url, exports.paths.archivedSites + '/' + url, function(err, res) {
-          if (err) {
-            throw err;
-          }
-        
-        })  
+        console.log("I am currently downloading     ", url);
+        // var file = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
+        // var request = http.get('http://' + url, function(response) {
+        //   response.pipe(file);
+        //   file.on('finish', function() {
+        //     console.log("I finished writing!!");
+        //     file.close(callback);
+        //   });
+        // }).on('error', function(err) {
+        //   fs.unlink(exports.paths.archivedSites + '/' + url);
+        //   if (callback) {callback(err.message)};
+        // })
+
+        request.get({url: "http://" + url, encoding: "utf8"}, function(err, response, body) {
+          fs.writeFile(exports.paths.archivedSites + '/' + url, body, "utf8", function(err) {
+            if (err) {
+              console.log(err);
+            } else {
+              console.log("The file was saved");
+            }
+          })
+
+
+        })
+        // httpreq.get('http://' + url, exports.paths.archivedSites + '/' + url, function(err, res) {
+        //   if (err) {
+        //     throw err;
+        //   } else {
+        //     console.log("Download");
+        //   }
+        // })  
       }
     })
 
