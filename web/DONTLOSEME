@@ -1,3 +1,103 @@
+second pass
+var path = require('path');
+var fs = require('fs');
+var archive = require('../helpers/archive-helpers');
+var url = require('url');
+
+exports.headers = headers = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "access-control-allow-headers": "content-type, accept",
+  "access-control-max-age": 10, // Seconds.
+  'Content-Type': "text/html"
+};
+
+exports.serveAssets = function(res, asset, callback) {
+  // Write some code here that helps serve up your static files!
+  // (Static files are things like html (yours or archived from others...),
+  // css, or anything that doesn't change often.)
+  fs.readFile(asset, function(err, data) {
+    if (err) {
+      throw err;
+    };
+    callback(data);
+  });
+};
+
+// takes the URL inputted by the user, and gives us the path from it
+// i.e. 127.0.0.1:3000/www.google.com --> www.google.com
+// i.e. 127.0.0.1:3000/ --> "" ???
+var pathName = function(inputUrl) {
+  return url.parse(inputUrl).pathname;
+};
+
+// based on the path / path-length, will tell us where to serve the assets from.
+var assetFinder = function(path, pathInfo) {
+  var code = 200;
+
+  if (path === "/") {
+    // var pathInfo = {};
+    pathInfo.path = archive.paths.siteAssets + '/index.html';
+    pathInfo.statusCode = code
+    return pathInfo;
+  }
+
+  archive.isUrlInList(path.slice(1), function(ourBool) {
+    // pathInfo = pathInfo || {};
+    if (ourBool) {
+      console.log("The current state of ", pathInfo);
+      pathInfo.path = archive.paths.archivedSites + path;
+      pathInfo.statusCode = code;
+      // console.log("Ourbool is true, so pathInfo is", pathInfo);
+    } else {
+      console.log("The current state of ", pathInfo);
+      pathInfo.path = null;
+      pathInfo.statusCode = 404;
+      // console.log("Ourbool is false, so pathInfo is", pathInfo);
+    }
+    console.log("pathInfo is.....", pathInfo);
+    return pathInfo;
+  });
+
+};
+
+//Handling different http request methods
+exports.actions = {
+  'OPTIONS': function(req, res) {
+
+  },
+  'GET': function(req, res) {
+    var path = pathName(req.url);
+    var asset = assetFinder(path, {});
+    console.log("The asset is ", asset);
+    if (asset.statusCode === 404) {
+      res.writeHead(asset.statusCode, exports.headers);
+      res.end("Not Found");
+    } else {
+      exports.serveAssets(res, asset.path, function(data) {
+        console.log('our path is', asset.path);
+        // helpers.headers['Content-Type'] = contentType;
+        res.writeHead(asset.statusCode, exports.headers);
+        res.end(data);
+      })
+    };
+  },
+  'POST': function(req, res) {
+
+  }
+};
+
+  // Write some code here that helps serve up your static files!
+  // (Static files are things like html (yours or archived from others...),
+  // css, or anything that doesn't change often.)
+
+// As you progress, keep thinking about what helper functions you can put here!
+
+
+
+first pass 
+
+
 var path = require('path');
 var url = require('url');
 var archive = require('../helpers/archive-helpers');

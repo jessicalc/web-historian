@@ -1,5 +1,6 @@
 var path = require('path');
 var fs = require('fs');
+var qs = require('querystring');
 var archive = require('../helpers/archive-helpers');
 var url = require('url');
 
@@ -31,26 +32,7 @@ var pathName = function(inputUrl) {
 };
 
 // based on the path / path-length, will tell us where to serve the assets from.
-var assetFinder = function(path) {
-  var code = 200;
-  console.log(path);
-  if (path === "/") {
-    return { 
-      path: archive.paths.siteAssets + '/index.html',
-      statusCode: code
-    };
-  }
-  if (!archive.isUrlInList(path.slice(1))) {
-    return {
-      path: null,
-      statusCode: 404
-    }
-  } else {
-      return {
-      path: archive.paths.archivedSites + path,
-      statusCode: code
-    }
-  }
+var assetFinder = function(path, pathInfo) {
 
 };
 
@@ -61,20 +43,42 @@ exports.actions = {
   },
   'GET': function(req, res) {
     var path = pathName(req.url);
-    var asset = assetFinder(path);
-    if (asset.path === null) {
-      res.writeHead(asset.statusCode, exports.headers);
-      res.end("Not Found");
-    } else {
-      exports.serveAssets(res, asset.path, function(data) {
-        console.log('our path is', asset.path);
-        // helpers.headers['Content-Type'] = contentType;
-        res.writeHead(asset.statusCode, exports.headers);
+    if (path === '/') {
+      exports.serveAssets(res, archive.paths.siteAssets + '/index.html', function(data) {
+        res.writeHead(200, exports.headers);
         res.end(data);
       })
-    };
+    } else {
+      archive.isUrlInList(path, function(ourBool) {
+        if (ourBool) {
+          exports.serveAssets(res, archive.paths.archivedSites + path, function(data) {
+            res.writeHead(200, exports.headers);
+            res.end(data);
+          })
+        } else {
+          res.writeHead(404, exports.headers);
+          res.end("Not Found.");
+        }
+      })
+    }
   },
   'POST': function(req, res) {
+    // var path = pathName(req.url);
+    console.log("-----------------");
+
+    var body = '';
+    var path;
+    req.on('data', function(data) {
+      body += data;
+    })
+    req.on('end', function() {
+      var post = qs.parse(body);
+      console.log("Post is", post.url);
+      archive.addUrlToList(post.url + '\n', function() {
+        res.writeHead(302, exports.headers);
+        res.end("Thanks.")
+      }) 
+    })
 
   }
 };

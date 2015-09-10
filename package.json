@@ -4,6 +4,7 @@
   "main": "web/basic-server.js",
   "license": "Copyright 2014, Hack Reactor. All rights reserved.",
   "dependencies": {
+    "querystring": "^0.2.0",
     "url": "^0.11.0"
   },
   "devDependencies": {

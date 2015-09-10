@@ -31,33 +31,51 @@ exports.readListOfUrls = function(callback) {
     if (err) {
       throw err;
     };
-    // console.log("what is our list?", exports.paths.list);
-    // var listOfUrls = data.split('\n');
-    // console.log("list of URls is now:", listOfUrls);
     callback(data.split('\n'));
   });
 };
 
-exports.isUrlInList = function(archivedSiteUrl) {
+exports.isUrlInList = function(archivedSiteUrl, callback) {
   //Call readListOfUrls. Passit a callback function
-  return exports.readListOfUrls(function(data) {
-    if (data.indexOf(archivedSiteUrl) > -1) {
-      console.log("true");
-      return true;
-    }
-    console.log("false");
-    return false;
+  exports.readListOfUrls(function(data){
+    callback(data.indexOf(archivedSiteUrl) > -1);
   })
-  // return true;
-  //Iterates through list in sites.txt and return true if a match is found
+  // callback = callback || exports.readListOfUrls;
+  // callback(function(data) {
+    // return data.indexOf(archivedSiteUrl) > -1 ? true : false;
+  // })
 };
 
-exports.addUrlToList = function() {
+exports.addUrlToList = function(archivedSiteUrl, callback) {
+  // callback();
+  exports.isUrlInList(archivedSiteUrl, function(ourBool) {
+    if (!ourBool) {
+      // console.log(exports.paths.list, archivedSiteUrl);
+      fs.writeFile(exports.paths.list, archivedSiteUrl, 'utf8', function(err) {
+        if (err) {
+          throw err;
+        }
+        callback();
+      });
+      exports.readListOfUrls(function(data) {
+        console.log('Our list of URLs is', data);
+      })
+    }
+  });
+    
+
   //If .isUrlInList returns false
     //Add the url to the .txt file in archives.
 };
 
-exports.isUrlArchived = function(archivedSiteUrl) {
+exports.isUrlArchived = function(archivedSiteUrl, callback) {
+  fs.readdir(archivedSiteUrl, function(err, files) {
+    if (err) {
+      throw err;
+    }
+    console.log("files are", files);
+    callback(files);
+  })
   // returns true or false depending on if there is a file named `archivedURL`
   // in the archived sites folder
 };
