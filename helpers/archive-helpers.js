@@ -1,5 +1,6 @@
 var fs = require('fs');
 var path = require('path');
+var httpreq = require('http-request');
 var _ = require('underscore');
 
 /*
@@ -22,8 +23,7 @@ exports.initialize = function(pathsObj) {
   });
 };
 
-// The following function names are provided to you to suggest how you might
-// modularize your code. Keep it clean!
+//Archive helper functions
 
 exports.readListOfUrls = function(callback) {
   //Read through text file, and returns an array of all the website names
@@ -39,21 +39,18 @@ exports.readListOfUrls = function(callback) {
 exports.isUrlInList = function(archivedSiteUrl, callback) {
   //Call readListOfUrls. Passit a callback function
   exports.readListOfUrls(function(listOfUrls){
-    var isInListOfUrls = listOfUrls.indexOf(archivedSiteUrl) > -1;
+    var isInListOfUrls = listOfUrls.indexOf(archivedSiteUrl.slice(0,-1)) > -1;
     callback(isInListOfUrls);
   })
-  // callback = callback || exports.readListOfUrls;
-  // callback(function(data) {
-    // return data.indexOf(archivedSiteUrl) > -1 ? true : false;
-  // })
 };
 
 exports.addUrlToList = function(archivedSiteUrl, callback) {
   // callback();
   exports.isUrlInList(archivedSiteUrl, function(isInList) {
+    console.log(isInList);
     if (!isInList) {
       // console.log(exports.paths.list, archivedSiteUrl);
-      fs.writeFile(exports.paths.list, archivedSiteUrl, 'utf8', function(err) {
+      fs.appendFile(exports.paths.list, archivedSiteUrl, 'utf8', function(err) {
         if (err) {
           throw err;
         }
@@ -64,23 +61,52 @@ exports.addUrlToList = function(archivedSiteUrl, callback) {
       })
     }
   });
-    
-
-  //If .isUrlInList returns false
-    //Add the url to the .txt file in archives.
 };
 
-exports.isUrlArchived = function(archivedSiteUrl, callback) {
-  fs.readdir(archivedSiteUrl, function(err, files) {
+exports.readUrlsInArchive = function(callback) {
+  fs.readdir(exports.paths.archivedSites, function(err, files) {
     if (err) {
       throw err;
     }
     console.log("files are", files);
     callback(files);
   })
-  // returns true or false depending on if there is a file named `archivedURL`
-  // in the archived sites folder
+}
+
+exports.isUrlArchived = function(archivedSiteUrl, callback) {
+  exports.readUrlsInArchive(function(filesInArchive) {
+    var isUrlInArchive = filesInArchive.indexOf(archivedSiteUrl) > -1;
+    callback(isUrlInArchive);
+  });
 };
 
-exports.downloadUrls = function() {
+exports.downloadUrls = function(urlArray) {
+  //check if url is archived
+  _.each(urlArray, function(url) {
+    exports.isUrlArchived(url, function(isUrlInArchive) {
+      console.log("The url array is ", urlArray);
+      console.log("The current url is    ", url);
+      console.log("Is the current url archived?  ", isUrlInArchive);
+      if (!isUrlInArchive) {
+        //If not, download it using httpreq.get
+        httpreq.get(url, exports.paths.archivedSites + '/' + url, function(err, res) {
+          if (err) {
+            throw err;
+          }
+        
+        })  
+      }
+    })
+
+
+    
+  })
 };
+
+
+
+
+
+
+
+

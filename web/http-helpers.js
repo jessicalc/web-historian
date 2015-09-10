@@ -49,8 +49,10 @@ exports.actions = {
         res.end(data);
       })
     } else {
-      archive.isUrlInList(path, function(isInList) {
-        if (isInList) {
+      archive.isUrlArchived(path.slice(1), function(isUrlInArchive) {
+        console.log("Is the url in the archive?  ", isUrlInArchive);
+        console.log("The current path is   ", path);
+        if (isUrlInArchive) {
           exports.serveAssets(res, archive.paths.archivedSites + path, function(data) {
             res.writeHead(200, exports.headers);
             res.end(data);
