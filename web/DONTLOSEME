@@ -1,0 +1,49 @@
+var path = require('path');
+var url = require('url');
+var archive = require('../helpers/archive-helpers');
+var helpers = require('./http-helpers');
+// require more modules/folders here!
+
+
+// takes the URL inputted by the user, and gives us the path from it
+// i.e. 127.0.0.1:3000/www.google.com --> www.google.com
+// i.e. 127.0.0.1:3000/ --> "" ???
+var pathName = function(inputUrl) {
+  return url.parse(inputUrl).pathname;
+};
+
+// based on the path / path-length, will tell us where to serve the assets from.
+var assetFinder = function(path) {
+  console.log(path);
+  if (!path.length) {
+    return archive.paths.siteAssets + '/index.html';
+  }
+  return archive.paths.archivedSites + '/' + path;
+};
+
+// var myPath(url) = path(request.url).parse
+//Handling different http request methods
+var actions = {
+  'OPTIONS': function(req, res) {
+
+  },
+  'GET': function(req, res) {
+    var path = pathName(req.url);
+    var asset = assetFinder(path);
+    // if request.url === '/', then give them archive.paths.siteAssets + '/index.html'
+    // if request.url === '/' + fixtureName, then give them archive.paths.archivedSites + '/fixtureName.html'
+    helpers.serveAssets(res, asset, function(data) {
+      console.log('our data is', data);
+      res.writeHead(200, helpers.headers);
+      res.end(data);
+    })
+  },
+  'POST': function(req, res) {
+
+  }
+};
+
+exports.handleRequest = function (req, res) {
+  actions[req.method](req,res);
+  // res.end(archive.paths.list);
+};
