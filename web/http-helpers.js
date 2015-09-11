@@ -35,7 +35,9 @@ var contentTypes = {
   // '.html' : 'text/html',
   // '.htm' : 'text/html',
   '.png' : 'image/png',
-  '.gif': 'image/gif'
+  '.gif': 'image/gif',
+  '.svg': true,
+  '.js': true
 }
 
 //Handling different http request methods
@@ -46,7 +48,9 @@ exports.actions = {
 
   'GET': function(req, res) {
     var path = url.parse(req.url).pathname;
+    console.log(req.url, "is req.url");
     var extension = pathHelper.extname(path);
+    // console.log(pathHelper.extname('www.facebook.com'));
     //We serve index.html when the path is '/'
     if (path === '/') {
       exports.serveAssets(res, archive.paths.siteAssets + '/index.html', function(data) {
@@ -54,17 +58,17 @@ exports.actions = {
         res.writeHead(200, exports.headers);
         res.end(data);
       })
-    } else if (contentTypes[extension]) {
-      //When any page serves files with mime types found in our contentTypes object, give them
-      // the correct mime types.
-      exports.serveAssets(res, archive.paths.siteAssets + '/' + path, function(data) {
-        exports.headers["Content-Type"] = contentTypes[extension];
-        res.writeHead(200, exports.headers);
-        res.end(data);
-      })
     } 
+    // else if (contentTypes[extension]) {
+    //   //When any page serves files with mime types found in our contentTypes object, give them
+    //   // the correct mime types.
+    //   exports.serveAssets(res, archive.paths.siteAssets + '/' + path, function(data) {
+    //     exports.headers["Content-Type"] = contentTypes[extension];
+    //     res.writeHead(200, exports.headers);
+    //     res.end(data);
+    //   })
+    // } 
     else {
-
       archive.isUrlInList(path, function(isInList) {
         if (isInList) {
           archive.isUrlArchived(path, function(isInArchive) {

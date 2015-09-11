@@ -93,41 +93,14 @@ exports.downloadUrls = function(urlArray, callback) {
     exports.isUrlArchived(url, function(isUrlInArchive) {
       if (!isUrlInArchive) {
         console.log("I am currently downloading     ", url);
-        // var file = fs.createWriteStream(exports.paths.archivedSites + '/' + url);
-        // var request = http.get('http://' + url, function(response) {
-        //   response.pipe(file);
-        //   file.on('finish', function() {
-        //     console.log("I finished writing!!");
-        //     file.close(callback);
-        //   });
-        // }).on('error', function(err) {
-        //   fs.unlink(exports.paths.archivedSites + '/' + url);
-        //   if (callback) {callback(err.message)};
-        // })
-
-        request.get({url: "http://" + url, encoding: "utf8"}, function(err, response, body) {
-          fs.writeFile(exports.paths.archivedSites + '/' + url, body, "utf8", function(err) {
-            if (err) {
-              console.log(err);
-            } else {
-              console.log("The file was saved");
-            }
-          })
-
-
+        httpreq.get('http://' + url, exports.paths.archivedSites + '/' + url, function(err, res) {
+          if (err) {
+            console.log(err);
+          }
+          console.log("It wrote the file");
         })
-        // httpreq.get('http://' + url, exports.paths.archivedSites + '/' + url, function(err, res) {
-        //   if (err) {
-        //     throw err;
-        //   } else {
-        //     console.log("Download");
-        //   }
-        // })  
       }
     })
-
-
-    
   })
 };
 
