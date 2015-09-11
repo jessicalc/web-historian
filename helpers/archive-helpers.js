@@ -56,6 +56,8 @@ exports.addUrlToList = function(archivedSiteUrl, callback) {
         if (err) {
           throw err;
         }
+        //CRON//
+        //comment this block of code out when we have a cron job running
         callback(function(data) {
           console.log("I should be downloading stuff at", data);
           exports.downloadUrls(data, function() {
